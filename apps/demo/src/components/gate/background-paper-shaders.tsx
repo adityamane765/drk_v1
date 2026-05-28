@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useMemo } from "react"
+import { useRef } from "react"
 import { useFrame } from "@react-three/fiber"
 import * as THREE from "three"
 // Custom shader material for advanced effects
@@ -60,20 +60,17 @@ export function ShaderPlane({
 }) {
   const mesh = useRef<THREE.Mesh>(null)
 
-  const uniforms = useMemo(
-    () => ({
-      time: { value: 0 },
-      intensity: { value: 1.0 },
-      color1: { value: new THREE.Color(color1) },
-      color2: { value: new THREE.Color(color2) },
-    }),
-    [color1, color2],
-  )
+  const uniformsRef = useRef({
+    time: { value: 0 },
+    intensity: { value: 1.0 },
+    color1: { value: new THREE.Color(color1) },
+    color2: { value: new THREE.Color(color2) },
+  })
 
   useFrame((state) => {
     if (mesh.current) {
-      uniforms.time.value = state.clock.elapsedTime
-      uniforms.intensity.value = 1.0 + Math.sin(state.clock.elapsedTime * 2) * 0.3
+      uniformsRef.current.time.value = state.clock.elapsedTime
+      uniformsRef.current.intensity.value = 1.0 + Math.sin(state.clock.elapsedTime * 2) * 0.3
     }
   })
 
@@ -81,7 +78,7 @@ export function ShaderPlane({
     <mesh ref={mesh} position={position}>
       <planeGeometry args={[2, 2, 32, 32]} />
       <shaderMaterial
-        uniforms={uniforms}
+        uniforms={uniformsRef.current}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         transparent

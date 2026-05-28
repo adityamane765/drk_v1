@@ -163,7 +163,7 @@ function TransitionContent({
 /* -------------------------------------------------------------------------- */
 
 function LogEntry({ line, fresh }: { line: LogLine; fresh: boolean }) {
-  const _ = useScramble(`${line.label}: ${line.value}`, fresh);
+  useScramble(`${line.label}: ${line.value}`, fresh);
   return (
     <div className="flex flex-wrap items-baseline gap-x-2 font-mono text-[11px]" style={{ height: "28px", alignItems: "center" }}>
       <span className="text-[#6b6b74]">{line.label}:</span>
@@ -228,7 +228,7 @@ function FlowModalInner({
   const [tradeStep, setTradeStep] = useState<
     "idle" | "registered" | "slot_ready" | "deposited" | "order_er" | "matched"
   >("idle");
-  const [tradeSession, setTradeSession] = useState<DappSessionV1 | null>(null);
+  const [_tradeSession, setTradeSession] = useState<DappSessionV1 | null>(null);
   const slotIdxRef = useRef<number | null>(null);
   const depositNoteRef = useRef<{ commitmentHex: string; amount: string } | null>(null);
   const orderCtxRef = useRef<{ orderIdHex: string; expirySlot: string } | null>(null);
