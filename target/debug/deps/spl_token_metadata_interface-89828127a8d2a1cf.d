@@ -1,0 +1,8 @@
+/Users/adityamane/trial/target/debug/deps/spl_token_metadata_interface-89828127a8d2a1cf.d: /Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/lib.rs /Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/error.rs /Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/instruction.rs /Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/state.rs
+
+/Users/adityamane/trial/target/debug/deps/libspl_token_metadata_interface-89828127a8d2a1cf.rmeta: /Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/lib.rs /Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/error.rs /Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/instruction.rs /Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/state.rs
+
+/Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/lib.rs:
+/Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/error.rs:
+/Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/instruction.rs:
+/Users/adityamane/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-token-metadata-interface-0.7.0/src/state.rs:

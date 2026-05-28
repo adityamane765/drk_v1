@@ -1,0 +1,27 @@
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+vault = "C63vKvysCzX55PKraas4Wc22ijqjGJQdPC1mrzCFVWZx"
+matching_engine = "6EasFxo6RCWrK4KAwcdUJqL4KjReLC3rtah8EtHgHSqe"
+
+[programs.devnet]
+vault = "C63vKvysCzX55PKraas4Wc22ijqjGJQdPC1mrzCFVWZx"
+matching_engine = "6EasFxo6RCWrK4KAwcdUJqL4KjReLC3rtah8EtHgHSqe"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "echo 'use cargo test + npm test'"
+
+[test.validator]
+url = "https://api.devnet.solana.com"
+
+[workspace]
+members = ["programs/vault", "programs/matching_engine"]
