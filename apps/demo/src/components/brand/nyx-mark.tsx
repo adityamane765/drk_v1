@@ -18,8 +18,8 @@ export function NyxMark({ size = 32, className, style, rising = false }: NyxMark
   return (
     <svg
       width={size}
-      height={size}
-      viewBox="0 0 120 120"
+      height={Math.round(size * 88 / 120)}
+      viewBox="0 0 120 88"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       style={style}

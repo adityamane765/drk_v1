@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { NyxMark } from "@/components/brand/nyx-mark";
+import { SparklesCore } from "@/components/gate/sparkles";
+import { MeshGradient } from "@paper-design/shaders-react";
 
 /* -------------------------------------------------------------------------- */
 /* GRID DIMENSIONS                                                            */
@@ -83,6 +85,7 @@ interface SvgLayout {
   originX: number; originY: number;
   gridW: number; gridH: number;
   wordFontSize: number; wordTop: number;
+  sparklesTop: number;
 }
 
 export function PixelLogoCanvas() {
@@ -91,7 +94,6 @@ export function PixelLogoCanvas() {
   const animRef = useRef<number>(0);
   const layoutRef = useRef({ originX: 0, originY: 0, CELL: 0, PIXEL: 0 });
   const [svgLayout, setSvgLayout] = useState<SvgLayout | null>(null);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -114,15 +116,17 @@ export function PixelLogoCanvas() {
     // spans approximately gridW. Empirically ~0.6 ch/px ratio at weight 600.
     const wordFontSize = Math.round(gridW / 4.2);
 
-    const gap = CELL * 0.25; // reduced gap between logo and wordmark
+    const gap = 2;                 // tight gap between logo and wordmark (px)
+    const sparklesGap = CELL * 1; // larger gap between wordmark and sparkles line
     const totalH = gridH + gap + wordFontSize * 1.1;
 
     const originX = (W - gridW) / 2;
-    const originY = (H - totalH) / 2;
+    const originY = (H - totalH) / 2 - H * 0.06;
     layoutRef.current = { originX, originY, CELL, PIXEL };
 
     const wordTop = originY + gridH + gap;
-    setSvgLayout({ originX, originY, gridW, gridH, wordFontSize, wordTop });
+    const sparklesTop = wordTop + wordFontSize + sparklesGap;
+    setSvgLayout({ originX, originY, gridW, gridH, wordFontSize, wordTop, sparklesTop });
 
     function draw() {
       if (cvs.width !== window.innerWidth || cvs.height !== window.innerHeight) {
@@ -130,17 +134,16 @@ export function PixelLogoCanvas() {
         cvs.width = W; cvs.height = H;
       }
 
-      // solid dark background
-      ctx.fillStyle = "#050608";
-      ctx.fillRect(0, 0, W, H);
+      // clear to transparent — background comes from the div, sparkles layer shows through
+      ctx.clearRect(0, 0, W, H);
 
-      // vertical grid lines
-      ctx.lineWidth = 1;
-      const gs = CELL;
-      for (let gx = ((originX % gs) + gs) % gs; gx < W; gx += gs) {
-        ctx.strokeStyle = "rgba(255,255,255,0.08)";
-        ctx.beginPath(); ctx.moveTo(Math.round(gx) + 0.5, 0); ctx.lineTo(Math.round(gx) + 0.5, H); ctx.stroke();
-      }
+      // // vertical grid lines
+      // ctx.lineWidth = 1;
+      // const gs = CELL;
+      // for (let gx = ((originX % gs) + gs) % gs; gx < W; gx += gs) {
+      //   ctx.strokeStyle = "rgba(255,255,255,0.08)";
+      //   ctx.beginPath(); ctx.moveTo(Math.round(gx) + 0.5, 0); ctx.lineTo(Math.round(gx) + 0.5, H); ctx.stroke();
+      // }
 
       // pixel wordmark drawing removed — see commented-out PIXEL_FONT above
 
@@ -153,6 +156,13 @@ export function PixelLogoCanvas() {
 
   return (
     <div className="fixed inset-0 bg-[#050608]">
+      {/* MESH GRADIENT BG */}
+      <MeshGradient
+        className="w-full h-full absolute inset-0"
+        colors={["#050608", "#0d0500", "#1a0800", "#2a0f00"]}
+        speed={1.0}
+      />
+
       {/* HEADER */}
       <header className="absolute top-0 left-0 right-0 z-10 flex items-center px-8 py-5">
         <div className="flex items-center gap-2.5 select-none">
@@ -223,6 +233,46 @@ export function PixelLogoCanvas() {
           <span style={{ fontWeight: 400, color: "#7a3810" }}>nyx</span>
         </div>
       )}
+
+      {/* SPARKLES HORIZON — fixed-width, centered, below wordmark */}
+      {/* {svgLayout && (
+        <div
+          style={{
+            position: "absolute",
+            top: svgLayout.sparklesTop,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: svgLayout.gridW + 80,
+            height: 160,
+            pointerEvents: "none",
+          }}
+        >
+          <div className="absolute inset-x-5 top-0 h-[2px] bg-linear-to-r from-transparent via-[#FA7E23] to-transparent blur-sm" />
+          <div className="absolute inset-x-5 top-0 h-px bg-linear-to-r from-transparent via-[#FA7E23] to-transparent" />
+          <div className="absolute top-0 h-1.25 bg-linear-to-r from-transparent via-[#FA7E23] to-transparent blur-sm"
+            style={{ left: "30%", right: "30%" }} />
+          <div className="absolute top-0 h-px bg-linear-to-r from-transparent via-[#FA7E23] to-transparent"
+            style={{ left: "30%", right: "30%" }} />
+          <SparklesCore
+            id="gate-sparkles"
+            background="transparent"
+            minSize={0.4}
+            maxSize={1}
+            particleDensity={1200}
+            particleColor="#FFFFFF"
+            speed={0.6}
+            className="w-full h-full"
+          />
+          <div
+            className="absolute inset-0 w-full h-full"
+            style={{
+              background: "#050608",
+              maskImage: `radial-gradient(${svgLayout.gridW + 40}px 120px at top, transparent 20%, white)`,
+              WebkitMaskImage: `radial-gradient(${svgLayout.gridW + 40}px 120px at top, transparent 20%, white)`,
+            }}
+          />
+        </div>
+      )} */}
     </div>
   );
 }

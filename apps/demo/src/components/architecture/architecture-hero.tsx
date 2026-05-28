@@ -6,7 +6,7 @@ function DocsButton({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-2 transition-opacity hover:opacity-70"
+      className="inline-flex items-center transition-opacity hover:opacity-70"
       style={{
         fontFamily: "'JetBrains Mono', monospace",
         fontSize: "10px",
@@ -21,9 +21,6 @@ function DocsButton({ onClick }: { onClick?: () => void }) {
       }}
     >
       Docs
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-        <path d="M2 5h6m0 0L5 2m3 3L5 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
     </button>
   );
 }
