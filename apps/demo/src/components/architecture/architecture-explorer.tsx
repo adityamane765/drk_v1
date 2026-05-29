@@ -102,7 +102,7 @@ export function ArchitectureExplorer({ onScrollUp }: { onScrollUp?: () => void }
             <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
               <path d="M4 11V1m0 0L1 4M4 1l3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            hero
+            back
           </button>
           {active && (
             <button

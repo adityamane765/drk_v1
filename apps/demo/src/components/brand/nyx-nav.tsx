@@ -15,7 +15,7 @@ interface NyxNavProps {
 }
 
 const LINKS: Array<{ label: string; href: string; key: NonNullable<NyxNavProps["active"]> }> = [
-  { label: "Overview", href: "/landing", key: "home" },
+  { label: "Overview", href: "/", key: "home" },
   { label: "Architecture", href: "/architecture", key: "architecture" },
 ];
 
@@ -58,7 +58,7 @@ export function NyxNav({ tone = "ink", launchHref = "/dapp", active = null }: Ny
 
         {launchHref ? (
           <Link
-            href="/landing"
+            href="/"
             className="group inline-flex items-center gap-2 transition-opacity hover:opacity-80"
             style={{
               fontFamily: "'JetBrains Mono', monospace",

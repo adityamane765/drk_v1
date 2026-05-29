@@ -88,7 +88,7 @@ interface SvgLayout {
   sparklesTop: number;
 }
 
-export function PixelLogoCanvas() {
+export function PixelLogoCanvas({ asHero = false }: { asHero?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const router = useRouter();
   const animRef = useRef<number>(0);
@@ -155,7 +155,7 @@ export function PixelLogoCanvas() {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-[#050608]">
+    <div className={asHero ? "relative w-full h-full bg-[#050608]" : "fixed inset-0 bg-[#050608]"}>
       {/* MESH GRADIENT BG */}
       <MeshGradient
         className="w-full h-full absolute inset-0"
@@ -163,36 +163,38 @@ export function PixelLogoCanvas() {
         speed={1.0}
       />
 
-      {/* HEADER */}
-      <header className="absolute top-0 left-0 right-0 z-10 flex items-center px-8 py-5">
-        <div className="flex items-center gap-2.5 select-none">
-          <NyxStaticMark />
+      {/* HEADER — gate page only */}
+      {!asHero && (
+        <header className="absolute top-0 left-0 right-0 z-10 flex items-center px-8 py-5">
+          <div className="flex items-center gap-2.5 select-none">
+            <NyxStaticMark />
+            <span
+              className="text-[13px] font-medium tracking-[0.06em]"
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "#c8b898" }}
+            >
+              DarkNyx
+            </span>
+          </div>
           <span
-            className="text-[13px] font-medium tracking-[0.06em]"
-            style={{ fontFamily: "'JetBrains Mono', monospace", color: "#c8b898" }}
+            className="absolute left-1/2 -translate-x-1/2 text-[11px] uppercase tracking-[0.22em] pointer-events-none"
+            style={{ fontFamily: "'JetBrains Mono', monospace", color: "rgba(250,180,100,0.95)" }}
           >
-            DarkNyx
+            Click on logo to enter DarkNyx
           </span>
-        </div>
-        <span
-          className="absolute left-1/2 -translate-x-1/2 text-[11px] uppercase tracking-[0.22em] pointer-events-none"
-          style={{ fontFamily: "'JetBrains Mono', monospace", color: "rgba(250,180,100,0.95)" }}
-        >
-          Click on logo to enter DarkNyx
-        </span>
-      </header>
+        </header>
+      )}
 
       {/* CANVAS */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
-        aria-label="DarkNyx — click logo to enter"
+        aria-label="DarkNyx"
       />
 
       {/* SVG LOGO OVERLAY */}
       {svgLayout && (
         <button
-          onClick={() => router.push("/landing")}
+          onClick={() => !asHero && router.push("/")}
           style={{
             position: "absolute",
             left: "50%",
@@ -201,9 +203,9 @@ export function PixelLogoCanvas() {
             background: "none",
             border: "none",
             padding: 0,
-            cursor: "pointer",
+            cursor: asHero ? "default" : "pointer",
           }}
-          aria-label="Enter DarkNyx"
+          aria-label="DarkNyx"
         >
           <NyxMark
             size={Math.min(svgLayout.gridW, svgLayout.gridH)}

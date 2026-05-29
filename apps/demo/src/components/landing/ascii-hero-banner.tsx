@@ -2,226 +2,242 @@
 
 import { useEffect, useRef } from "react";
 
-const CHARS =
-  "ASDGKDFSWRKWRWORNWRWKKKWRKR";
-
-interface Cell {
-  char: string;
-  target: boolean;
-  glow: boolean;
-  switchAt: number;
-}
+const CHARS = "ASDGKDFSWRKWRWORNWRWKKKWRKR";
 
 export function AsciiHeroBanner({ contained = false, fade = true }: { contained?: boolean; fade?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const frameRef = useRef(0);
   const animRef = useRef<number>(0);
+  const frameRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d")!;
-
     const DPR = window.devicePixelRatio || 1;
 
-    const FONT_SIZE = 9;
     const CHAR_W = 7;
     const LINE_H = 10;
+    const FONT_SIZE = 9;
 
-    const resize = () => {
-      const width = contained
-        ? (canvas.parentElement?.offsetWidth ?? 480)
-        : window.innerWidth;
-      const height = contained
-        ? (canvas.parentElement?.offsetHeight ?? 340)
-        : 620;
-
-      canvas.width = width * DPR;
-      canvas.height = height * DPR;
-
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-      build(width, height);
-    };
-
-    let cells: Cell[][] = [];
+    // char grid state (for the bg rain)
+    let cols = 0;
+    let rows = 0;
+    let switchAt: Float32Array;
+    let chars: string[];
 
     function randChar() {
       return CHARS[Math.floor(Math.random() * CHARS.length)];
     }
 
-    function build(width: number, height: number) {
-      const COLS = Math.floor(width / CHAR_W);
-      const ROWS = Math.floor(height / LINE_H);
-
-      cells = [];
-
-      for (let y = 0; y < ROWS; y++) {
-        const row: Cell[] = [];
-
-        for (let x = 0; x < COLS; x++) {
-          row.push({
-            char: randChar(),
-            target: false,
-            glow: false,
-            switchAt: Math.random() * 40,
-          });
-        }
-
-        cells.push(row);
+    function build(w: number, h: number) {
+      cols = Math.floor(w / CHAR_W);
+      rows = Math.floor(h / LINE_H);
+      const n = cols * rows;
+      switchAt = new Float32Array(n);
+      chars = new Array(n);
+      for (let i = 0; i < n; i++) {
+        chars[i] = randChar();
+        switchAt[i] = Math.random() * 60;
       }
+    }
 
-      const centerX = Math.floor(COLS / 2);
-      const centerY = Math.floor(ROWS / 2);
+    // NyxMark geometry in SVG space (viewBox 0 0 120 120)
+    // We'll scale it to a target size on canvas and center it
+    function drawLogoGlow(cx: number, cy: number, scale: number, pulse: number) {
+      // SVG origin: mark is centered at svg(60,60), we map svg coords → canvas coords
+      // canvas_x = cx + (svg_x - 60) * scale
+      // canvas_y = cy + (svg_y - 60) * scale
+      const sx = (svgX: number) => cx + (svgX - 60) * scale;
+      const sy = (svgY: number) => cy + (svgY - 60) * scale;
 
-      const logo: string[] = [
-        "            ███████████            ",
-        "         █████████████████         ",
-        "      ███████████████████████       ",
-        "     █████████████████████████     ",
-        "     █████████████████████████     ",
-        "     █████████████████████████     ",
-        "  ██████████████████████████████   ",
-        "  █████████████████████████         ",
-      ];
+      const baseBlur = 38 + pulse * 18;
+      const fillA = 0.10 + pulse * 0.06;
+      const glowA = 0.85 + pulse * 0.15;
 
-      const logoWidth = logo[0].length;
-      const logoHeight = logo.length;
+      // ── half-circle (clipped at y=66 in svg space) ──
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(sx(0), sy(0), 120 * scale, 66 * scale);
+      ctx.clip();
 
-      const letters: Record<string, string[]> = {
-        D: ["████ ", "█   █", "█   █", "█   █", "████ "],
-        A: [" ███ ", "█   █", "█████", "█   █", "█   █"],
-        R: ["████ ", "█   █", "████ ", "█  █ ", "█   █"],
-        K: ["█  █ ", "█ █  ", "██   ", "█ █  ", "█  █ "],
-        N: ["█   █", "██  █", "█ █ █", "█  ██", "█   █"],
-        Y: ["█   █", " █ █ ", "  █  ", "  █  ", "  █  "],
-        X: ["█   █", " █ █ ", "  █  ", " █ █ ", "█   █"],
-      };
+      ctx.beginPath();
+      ctx.arc(sx(60), sy(60), 36 * scale, 0, Math.PI * 2);
+      ctx.shadowBlur = baseBlur;
+      ctx.shadowColor = `rgba(250,126,35,${glowA})`;
+      ctx.fillStyle = `rgba(250,126,35,${fillA})`;
+      ctx.fill();
+      ctx.restore();
 
+      // ── long horizon rect (svg: x=18,y=66,w=84,h=4) ──
+      ctx.save();
+      ctx.shadowBlur = baseBlur;
+      ctx.shadowColor = `rgba(250,126,35,${glowA})`;
+      ctx.fillStyle = `rgba(250,126,35,${fillA})`;
+      ctx.fillRect(sx(18), sy(66), 84 * scale, 4 * scale);
+      ctx.restore();
+
+      // ── short horizon rect (svg: x=18,y=78,w=60,h=4, opacity 0.5) ──
+      ctx.save();
+      ctx.shadowBlur = baseBlur * 0.6;
+      ctx.shadowColor = `rgba(250,126,35,${glowA * 0.5})`;
+      ctx.fillStyle = `rgba(250,126,35,${fillA * 0.5})`;
+      ctx.fillRect(sx(18), sy(78), 60 * scale, 4 * scale);
+      ctx.restore();
+    }
+
+    // DARKNYX bitmap letters (5-wide, 5-tall)
+    const letters: Record<string, string[]> = {
+      D: ["████ ", "█   █", "█   █", "█   █", "████ "],
+      A: [" ███ ", "█   █", "█████", "█   █", "█   █"],
+      R: ["████ ", "█   █", "████ ", "█  █ ", "█   █"],
+      K: ["█  █ ", "█ █  ", "██   ", "█ █  ", "█  █ "],
+      N: ["█   █", "██  █", "█ █ █", "█  ██", "█   █"],
+      Y: ["█   █", " █ █ ", "  █  ", "  █  ", "  █  "],
+      X: ["█   █", " █ █ ", "  █  ", " █ █ ", "█   █"],
+    };
+
+    function drawTextGlow(
+      centerX: number, centerY: number,
+      textBaseY: number, pulse: number
+    ) {
       const text = "DARKNYX";
-      const textWidth = text.length * 7;
-      const totalHeight = logoHeight + 10;
+      const charPx = CHAR_W;
+      const textWidth = text.length * (charPx + 1);
+      let cursorX = centerX - textWidth / 2;
+      const baseBlur = 10 + pulse * 6;
+      const alpha = 0.88 + pulse * 0.12;
 
-      const logoStartX = Math.floor(centerX - logoWidth / 2);
-      const logoStartY = Math.floor(centerY - totalHeight / 2);
-
-      for (let y = 0; y < logo.length; y++) {
-        for (let x = 0; x < logo[y].length; x++) {
-          if (logo[y][x] !== " ") {
-            const gx = logoStartX + x;
-            const gy = logoStartY + y;
-            if (cells[gy]?.[gx]) {
-              cells[gy][gx].target = true;
-              cells[gy][gx].glow = true;
-            }
-          }
-        }
-      }
-
-      const textStartX = Math.floor(centerX - textWidth / 2);
-      const textStartY = logoStartY + logoHeight + 5;
-      let cursor = textStartX;
+      ctx.font = `${FONT_SIZE}px monospace`;
+      ctx.textBaseline = "top";
 
       for (const ch of text) {
         const bitmap = letters[ch];
         for (let py = 0; py < bitmap.length; py++) {
           for (let px = 0; px < bitmap[py].length; px++) {
             if (bitmap[py][px] !== " ") {
-              const gx = cursor + px;
-              const gy = textStartY + py;
-              if (cells[gy]?.[gx]) {
-                cells[gy][gx].target = true;
-                cells[gy][gx].glow = true;
-              }
+              ctx.shadowBlur = baseBlur;
+              ctx.shadowColor = `rgba(250,126,35,${alpha})`;
+              ctx.fillStyle = `rgba(250,126,35,${alpha})`;
+              ctx.fillText(ch === ch ? bitmap[py][px] : "", cursorX + px * charPx, textBaseY + py * LINE_H);
             }
           }
         }
-        cursor += 7;
+        cursorX += charPx + 1;
       }
-
     }
 
-    function draw() {
-      frameRef.current++;
-
-      const frame = frameRef.current;
-
-      const width = canvas.width / DPR;
-      const height = canvas.height / DPR;
-
-      ctx.fillStyle = "#050505";
-      ctx.fillRect(0, 0, width, height);
-
-      // dotted matrix grid
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
-
-      for (let x = 0; x < width; x += 12) {
-        for (let y = 0; y < height; y += 12) {
-          ctx.fillRect(x, y, 1, 1);
-        }
-      }
+    function drawTextGlowFixed(
+      centerX: number, textBaseY: number, pulse: number
+    ) {
+      const text = "DARKNYX";
+      const charPx = CHAR_W;
+      const textWidth = text.length * (charPx + 1);
+      let cursorX = Math.floor(centerX - textWidth / 2);
+      const baseBlur = 22 + pulse * 10;
+      const fillA = 0.12 + pulse * 0.06;
+      const glowA = 0.80 + pulse * 0.20;
 
       ctx.font = `${FONT_SIZE}px monospace`;
       ctx.textBaseline = "top";
 
-      for (let y = 0; y < cells.length; y++) {
-        for (let x = 0; x < cells[y].length; x++) {
-          const cell = cells[y][x];
-
-          if (frame >= cell.switchAt) {
-            cell.char = randChar();
-
-            cell.switchAt =
-              frame +
-              (cell.target
-                ? 5 + Math.random() * 10
-                : 20 + Math.random() * 80);
+      for (const ch of text) {
+        const bitmap = letters[ch];
+        for (let py = 0; py < bitmap.length; py++) {
+          for (let px = 0; px < bitmap[py].length; px++) {
+            if (bitmap[py][px] !== " ") {
+              ctx.save();
+              ctx.shadowBlur = baseBlur;
+              ctx.shadowColor = `rgba(250,126,35,${glowA})`;
+              ctx.fillStyle = `rgba(250,126,35,${fillA})`;
+              ctx.fillRect(cursorX + px * charPx, textBaseY + py * LINE_H, charPx - 1, LINE_H - 2);
+              ctx.restore();
+            }
           }
+        }
+        cursorX += charPx + 1;
+      }
+    }
 
-          const px = x * CHAR_W;
-          const py = y * LINE_H;
+    const resize = () => {
+      const w = contained ? (canvas.parentElement?.offsetWidth ?? 480) : window.innerWidth;
+      const h = contained ? (canvas.parentElement?.offsetHeight ?? 340) : 620;
+      canvas.width = w * DPR;
+      canvas.height = h * DPR;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      build(w, h);
+    };
 
-          if (cell.glow) {
-            ctx.fillStyle = "rgba(217, 104, 32, 0.98)";
-            ctx.shadowBlur = 14;
-            ctx.shadowColor = "rgba(217, 104, 32, 0.95)";
-          } else if (cell.target) {
-            ctx.fillStyle = "rgba(217, 104, 32, 0.55)";
-            ctx.shadowBlur = 0;
-          } else {
-            ctx.fillStyle = "rgba(255,255,255,0.10)";
-            ctx.shadowBlur = 0;
+    function draw() {
+      const frame = ++frameRef.current;
+      const w = canvas.width / DPR;
+      const h = canvas.height / DPR;
+
+      // bg
+      ctx.fillStyle = "#050505";
+      ctx.fillRect(0, 0, w, h);
+
+      // dot grid
+      ctx.fillStyle = "rgba(255,255,255,0.07)";
+      for (let x = 0; x < w; x += 12)
+        for (let y = 0; y < h; y += 12)
+          ctx.fillRect(x, y, 1, 1);
+
+      // ascii rain chars (all dim, no logo coloring)
+      ctx.font = `${FONT_SIZE}px monospace`;
+      ctx.textBaseline = "top";
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "rgba(255,255,255,0.09)";
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const i = r * cols + c;
+          if (frame >= switchAt[i]) {
+            chars[i] = randChar();
+            switchAt[i] = frame + 20 + Math.random() * 80;
           }
-
-          ctx.fillText(cell.char, px, py);
+          ctx.fillText(chars[i], c * CHAR_W, r * LINE_H);
         }
       }
 
-      // scanlines
-      ctx.fillStyle = "rgba(255,255,255,0.03)";
+      // pulse 0..1
+      const pulse = (Math.sin(frame * 0.03) + 1) / 2;
 
-      for (let y = 0; y < height; y += 4) {
-        ctx.fillRect(0, y, width, 1);
-      }
+      // logo centered, scale so logo ~140px tall in a 620px canvas
+      const logoSvgH = 88; // viewBox height used (0..88 covers circle+rects)
+      const targetH = contained ? Math.min(h * 0.38, 120) : 160;
+      const scale = targetH / logoSvgH;
+
+      const cx = w / 2;
+      // center of SVG is at svg(60,60); position it so logo sits above wordmark
+      const wordmarkH = 5 * LINE_H + 12; // 5 rows + gap
+      const totalH = targetH + wordmarkH;
+      const cy = h / 2 - totalH / 2 + 60 * scale; // map svg center y=60 to canvas
+
+      drawLogoGlow(cx, cy, scale, pulse);
+
+      // wordmark below logo
+      const logoBottomSvgY = 82; // bottom of second rect (y=78+h=4)
+      const textBaseY = cy + (logoBottomSvgY - 60) * scale + 14;
+      drawTextGlowFixed(cx, textBaseY, pulse);
+
+      // scanlines
+      ctx.fillStyle = "rgba(255,255,255,0.025)";
+      for (let y = 0; y < h; y += 4)
+        ctx.fillRect(0, y, w, 1);
 
       animRef.current = requestAnimationFrame(draw);
     }
 
     resize();
-
     window.addEventListener("resize", resize);
-
     draw();
 
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener("resize", resize);
     };
-  }, []);
+  }, [contained]);
 
   if (contained) {
     return (
