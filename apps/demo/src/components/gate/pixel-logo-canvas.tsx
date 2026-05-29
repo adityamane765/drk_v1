@@ -121,7 +121,7 @@ export function PixelLogoCanvas({ asHero = false }: { asHero?: boolean }) {
     const totalH = gridH + gap + wordFontSize * 1.1;
 
     const originX = (W - gridW) / 2;
-    const originY = (H - totalH) / 2 - H * 0.06;
+    const originY = (H - totalH) / 2;
     layoutRef.current = { originX, originY, CELL, PIXEL };
 
     const wordTop = originY + gridH + gap;
